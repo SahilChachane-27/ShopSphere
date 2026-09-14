@@ -1,0 +1,37 @@
+import os
+from typing import List, Union
+from pydantic import AnyHttpUrl, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "ShopSphere"
+    API_V1_STR: str = "/api/v1"
+    SECRET_KEY: str = "shopsphere-super-secret-key-change-in-production-2026"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440 # 24 hours
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "Sahil@123"
+    POSTGRES_DB: str = "shopsphere"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:Sahil%40123@localhost:5432/shopsphere"
+    SYNC_DATABASE_URL: str = "postgresql+psycopg2://postgres:Sahil%40123@localhost:5432/shopsphere"
+
+    UPLOAD_DIR: str = "app/uploads"
+    MAX_FILE_SIZE_MB: int = 5
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000"
+    ]
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
+
+settings = Settings()
