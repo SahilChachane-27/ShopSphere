@@ -53,7 +53,13 @@ async def search_and_list_products(
             )
         )
     if category_id:
-        stmt = stmt.where(Product.category_id == category_id)
+        sub_cat_stmt = select(Category.id).where(or_(Category.id == category_id, Category.parent_id == category_id))
+        sub_cat_res = await db.execute(sub_cat_stmt)
+        cat_ids = sub_cat_res.scalars().all()
+        if cat_ids:
+            stmt = stmt.where(Product.category_id.in_(cat_ids))
+        else:
+            stmt = stmt.where(Product.category_id == category_id)
     if brand:
         stmt = stmt.where(Product.brand.ilike(f"%{brand}%"))
     if min_price is not None:
