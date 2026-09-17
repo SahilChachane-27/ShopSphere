@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
-        "*"
+        "https://shop-sphere-one-gamma.vercel.app"
     ]
 
     @field_validator("DATABASE_URL", mode="before")

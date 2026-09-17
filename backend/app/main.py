@@ -22,9 +22,14 @@ app = FastAPI(
 )
 
 # CORS Config
+cors_origins = [str(o).rstrip("/") for o in settings.BACKEND_CORS_ORIGINS if o != "*"]
+if "https://shop-sphere-one-gamma.vercel.app" not in cors_origins:
+    cors_origins.append("https://shop-sphere-one-gamma.vercel.app")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
