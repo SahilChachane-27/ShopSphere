@@ -36,27 +36,13 @@ app = FastAPI(
     openapi_url="/openapi.json",
     lifespan=lifespan
 )
-# # CORS Config
+# CORS Config
 allowed_origins = [
     "https://shop-sphere-one-gamma.vercel.app",
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# allowed_origins = [
-#     "https://shop-sphere-one-gamma.vercel.app",
-#     "http://localhost:5173",
-#     "http://127.0.0.1:5173",
-#     "http://localhost:3000",
-# ]
 
 for origin in settings.BACKEND_CORS_ORIGINS:
     origin_clean = str(origin).strip().rstrip("/")

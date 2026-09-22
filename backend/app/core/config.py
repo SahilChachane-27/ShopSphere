@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     UPLOAD_DIR: str = "app/uploads"
     MAX_FILE_SIZE_MB: int = 5
-    BACKEND_CORS_ORIGINS: List[str] = [
+    BACKEND_CORS_ORIGINS: Union[str, List[str]] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
@@ -52,13 +52,22 @@ class Settings(BaseSettings):
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str):
-            if not v.startswith("["):
-                return [i.strip() for i in v.split(",") if i.strip()]
-            try:
-                return json.loads(v)
-            except Exception:
-                return [v]
-        return v
+            v = v.strip()
+            if not v:
+                return []
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    return json.loads(v)
+                except Exception:
+                    cleaned = v.strip("[]").replace("'", '"')
+                    try:
+                        return json.loads(f"[{cleaned}]")
+                    except Exception:
+                        return [i.strip().strip("'\"") for i in v.strip("[]").split(",") if i.strip()]
+            return [i.strip().strip("'\"") for i in v.split(",") if i.strip()]
+        elif isinstance(v, list):
+            return v
+        return []
 
     model_config = SettingsConfigDict(
         env_file=".env",
