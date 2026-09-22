@@ -36,9 +36,10 @@ app = FastAPI(
     openapi_url="/openapi.json",
     lifespan=lifespan
 )
-# CORS Config
+# CORS Config - Allow all Vercel domains, preview URLs, localhost, and custom domains
 allowed_origins = [
     "https://shop-sphere-one-gamma.vercel.app",
+    "https://shop-sphere-58djq8w7g-sahil-chachanes-projects.vercel.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -52,7 +53,7 @@ for origin in settings.BACKEND_CORS_ORIGINS:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"^https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
