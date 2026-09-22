@@ -12,27 +12,52 @@ from app.api.v1 import (
     auth, users, categories, products, cart, wishlist, inventory, coupons, orders, payments, reviews, notifications, sellers, admin
 )
 
+from contextlib import asynccontextmanager
+from app.database.session import async_engine, Base
+import app.models.models  # Ensure models are loaded
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Ensure database tables exist automatically on startup
+    try:
+        async with async_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print("Database tables initialized successfully.")
+    except Exception as e:
+        print(f"Database initialization error (will retry on connection): {e}")
+    yield
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="ShopSphere Multi-Vendor E-Commerce Platform REST API",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    lifespan=lifespan
 )
 
 # CORS Config
-cors_origins = [str(o).rstrip("/") for o in settings.BACKEND_CORS_ORIGINS if o != "*"]
-if "https://shop-sphere-one-gamma.vercel.app" not in cors_origins:
-    cors_origins.append("https://shop-sphere-one-gamma.vercel.app")
+allowed_origins = [
+    "https://shop-sphere-one-gamma.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+]
+
+for origin in settings.BACKEND_CORS_ORIGINS:
+    origin_clean = str(origin).strip().rstrip("/")
+    if origin_clean and origin_clean != "*" and origin_clean not in allowed_origins:
+        allowed_origins.append(origin_clean)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=allowed_origins,
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Static Files for Uploaded Product Images

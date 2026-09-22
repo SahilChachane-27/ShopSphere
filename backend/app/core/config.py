@@ -31,18 +31,22 @@ class Settings(BaseSettings):
 
     @field_validator("DATABASE_URL", mode="before")
     def assemble_db_url(cls, v: str) -> str:
-        if v and v.startswith("postgres://"):
-            return v.replace("postgres://", "postgresql+asyncpg://", 1)
-        if v and v.startswith("postgresql://") and not v.startswith("postgresql+"):
-            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if v:
+            if v.startswith("postgres://"):
+                v = v.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif v.startswith("postgresql://") and not v.startswith("postgresql+"):
+                v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            if "sslmode=require" in v:
+                v = v.replace("sslmode=require", "ssl=require")
         return v
 
     @field_validator("SYNC_DATABASE_URL", mode="before")
     def assemble_sync_db_url(cls, v: str) -> str:
-        if v and v.startswith("postgres://"):
-            return v.replace("postgres://", "postgresql+psycopg2://", 1)
-        if v and v.startswith("postgresql://") and not v.startswith("postgresql+"):
-            return v.replace("postgresql://", "postgresql+psycopg2://", 1)
+        if v:
+            if v.startswith("postgres://"):
+                v = v.replace("postgres://", "postgresql+psycopg2://", 1)
+            elif v.startswith("postgresql://") and not v.startswith("postgresql+"):
+                v = v.replace("postgresql://", "postgresql+psycopg2://", 1)
         return v
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
