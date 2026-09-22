@@ -5,9 +5,25 @@ from fastapi.responses import JSONResponse
 
 logger = logging.getLogger("shopsphere")
 
+def get_cors_headers(request: Request) -> dict:
+    origin = request.headers.get("origin")
+    if origin:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+    }
+
 async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=exc.status_code,
+        headers=get_cors_headers(request),
         content={
             "success": False,
             "message": exc.detail if isinstance(exc.detail, str) else "HTTP Error",
@@ -25,6 +41,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         })
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        headers=get_cors_headers(request),
         content={
             "success": False,
             "message": "Validation Error",
@@ -36,9 +53,10 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled error processing {request.method} {request.url.path}: {exc}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        headers=get_cors_headers(request),
         content={
             "success": False,
-            "message": "An unexpected internal server error occurred. Please try again later.",
-            "errors": []
+            "message": f"Server Error: {str(exc)}",
+            "errors": [str(exc)]
         }
     )

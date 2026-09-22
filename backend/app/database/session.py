@@ -4,6 +4,16 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
+import ssl
+
+# SSL configuration for cloud databases
+async_connect_args = {}
+if any(host in settings.DATABASE_URL for host in ["render.com", "neon.tech", "supabase.co", "aws", "rds", "pooler"]) or "ssl" in settings.DATABASE_URL:
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    async_connect_args["ssl"] = ctx
+
 # Async engine & sessionmaker
 async_engine = create_async_engine(
     settings.DATABASE_URL,
@@ -11,7 +21,8 @@ async_engine = create_async_engine(
     future=True,
     pool_pre_ping=True,
     pool_size=10,
-    max_overflow=20
+    max_overflow=20,
+    connect_args=async_connect_args
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -23,10 +34,15 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 # Sync engine & sessionmaker (for seed scripts, migrations, etc.)
+sync_connect_args = {}
+if any(host in settings.SYNC_DATABASE_URL for host in ["render.com", "neon.tech", "supabase.co", "aws", "rds", "pooler"]):
+    sync_connect_args["sslmode"] = "require"
+
 sync_engine = create_engine(
     settings.SYNC_DATABASE_URL,
     echo=False,
-    pool_pre_ping=True
+    pool_pre_ping=True,
+    connect_args=sync_connect_args
 )
 
 SyncSessionLocal = sessionmaker(
